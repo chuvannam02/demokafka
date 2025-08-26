@@ -6,6 +6,7 @@ import com.springkafka.demokafka.dto.in.user.UserListFilterDTO;
 import com.springkafka.demokafka.entity.User;
 import com.springkafka.demokafka.exception.BadRequestException;
 import com.springkafka.demokafka.repository.UserRepository;
+import com.springkafka.demokafka.service.UserInterface;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

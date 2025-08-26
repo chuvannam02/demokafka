@@ -1,4 +1,4 @@
-package com.springkafka.demokafka.service.impl;
+package com.springkafka.demokafka.service;
 
 import com.springkafka.demokafka.dto.in.user.UserDTO;
 import com.springkafka.demokafka.dto.in.user.UserListFilterDTO;
