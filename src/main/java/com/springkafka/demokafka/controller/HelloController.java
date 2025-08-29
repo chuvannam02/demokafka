@@ -19,4 +19,10 @@ public class HelloController {
         log.warn("A sample WARN log with MDC fields");
         return Map.of("message", "hello", "status", "OK");
     }
+
+    @GetMapping("/health")
+    public Map<String, Object> health() {
+        log.info("Health endpoint called");
+        return Map.of("status", "UP");
+    }
 }
