@@ -41,19 +41,4 @@ public abstract class BasePagedDTO {
 
     private String createdBy;
     private String lastModifiedBy;
-
-    // 👇 Field ảo, không lưu DB, chỉ trả ra JSON
-    @JsonProperty("createdDateFormatted")
-    public String getCreatedDateFormatted() {
-        return createdDate != null
-                ? createdDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
-                : null;
-    }
-
-    @JsonProperty("lastModifiedDateFormatted")
-    public String getLastModifiedDateFormatted() {
-        return lastModifiedDate != null
-                ? lastModifiedDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"))
-                : null;
-    }
 }

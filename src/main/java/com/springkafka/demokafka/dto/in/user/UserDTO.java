@@ -8,6 +8,7 @@ import com.springkafka.demokafka.dto.view.Views;
 import com.springkafka.demokafka.util.validation.ValidateFieldsNotBlank;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldDefaults;
 
@@ -26,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 @FieldDefaults(level = AccessLevel.PRIVATE) // Thiết lập mức độ truy cập cho các trường là PRIVATE
 @JsonView(Views.Public.class)
 @ValidateFieldsNotBlank(fields = {"username", "email", "name"}) // custom validate
+@Builder
 public class UserDTO extends BasePagedDTO {
     Long id; // ID của người dùng, có thể null nếu chưa được tạo
 //    @NotBlank(message = "Username is required")
