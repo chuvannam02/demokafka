@@ -1,6 +1,7 @@
 package com.springkafka.demokafka.controller;
 
 import com.springkafka.demokafka.entity.Animal;
+import com.springkafka.demokafka.entity.InformationV2;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -72,10 +73,17 @@ public class Test {
 //        Collections.sort(animals, sortByName);
 //        animals.forEach(a -> System.out.println(a.getName() + " - " + a.getAge() + " - " + a.getType()));
 
-        Animal animal = Animal.builder()
-                .name("Tom")
-                .age(5L)
-                .build();
-        System.out.println(animal);
+//        Animal animal = Animal.builder()
+//                .name("Tom")
+//                .age(5L)
+//                .build();
+//        System.out.println(animal);
+
+        InformationV2 a3 = InformationV2.getInstance();
+        InformationV2 a4 = InformationV2.getInstance();
+
+        System.out.println(a3.getName()); // Dog
+        System.out.println(a4.getName()); // Dog (vẫn cùng 1 instance)
+        System.out.println(a3 == a4);     // true
     }
 }
