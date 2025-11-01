@@ -27,7 +27,7 @@ import java.util.Map;
  * @Time: 10:29 AM
  */
 
-//KafkaConfig — cấu hình producer/consumer và DLQ error handler
+//KafkaConfig - cấu hình producer/consumer và DLQ error handler
 @Configuration
 public class KafkaConfig {
     @Value("${spring.kafka.bootstrap-servers}")

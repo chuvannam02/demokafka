@@ -5,27 +5,58 @@ services:
         environment:
             ZOOKEEPER_CLIENT_PORT: 2181
             ZOOKEEPER_TICK_TIME: 2000
+            ZOOKEEPER_AUTH_PROVIDER_1: org.apache.zookeeper.server.auth.SASLAuthenticationProvider
+            ZOOKEEPER_REQUIRE_CLIENT_AUTH_SCHEME: sasl
+            ZOOKEEPER_JAAS_LOGIN_RENEW: 3600000
+            KAFKA_OPTS: "-Djava.security.auth.login.config=/etc/zookeeper/conf/zookeeper-jaas.conf"
+        volumes:
+            - ./zookeeper-jaas.conf:/etc/zookeeper/conf/zookeeper-jaas.conf
+        healthcheck:
+            test: [ "CMD", "nc", "-z", "localhost", "2181" ]
+            interval: 5s
+            timeout: 5s
+            retries: 10
         ports:
-            - 2181:2181
+            - "2181:2181"
 
     kafka:
         image: confluentinc/cp-kafka:7.4.0
         depends_on:
-            - zookeeper
+            zookeeper:
+                condition: service_healthy
         ports:
             - "9092:9092"
             - "29092:29092"
+            - "9093:9093"  # SASL_PLAINTEXT port
         environment:
             KAFKA_BROKER_ID: 1
             KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
             KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+            # ----------------------------
+            # 🔐 Enable SASL/PLAIN
+            # ----------------------------
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,SASL_PLAINTEXT:SASL_PLAINTEXT
+            KAFKA_LISTENERS: SASL_PLAINTEXT://0.0.0.0:9093,PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+            KAFKA_ADVERTISED_LISTENERS: SASL_PLAINTEXT://kafka:9093,PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+            KAFKA_INTER_BROKER_LISTENER_NAME: SASL_PLAINTEXT
+            KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+            KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+            KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+            KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "true"
+
+            # 👇 File JAAS cấu hình user/password
+            KAFKA_OPTS: -Djava.security.auth.login.config=/etc/kafka/server-jaas.conf
+
             # Khai báo 2 listener:
             # - kafka:9092 cho các container nội bộ (Kafka UI, app khác)
             # - localhost:29092 cho host máy ngoài container
-            KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
-            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
-            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+    #            KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+    #            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+    #            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+    #            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        volumes:
+            - ./security/server-jaas.conf:/etc/kafka/server-jaas.conf
 
     kafka-ui:
         image: provectuslabs/kafka-ui:latest
@@ -34,7 +65,15 @@ services:
             - "8081:8080"
         environment:
             KAFKA_CLUSTERS_0_NAME: local
-            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+            KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093  # 🔥 DÙNG PORT SASL
             KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+            # 🔒 Thông tin SASL/PLAIN
+            KAFKA_CLUSTERS_0_PROPERTIES_SECURITY_PROTOCOL: SASL_PLAINTEXT
+            KAFKA_CLUSTERS_0_PROPERTIES_SASL_MECHANISM: PLAIN
+            KAFKA_CLUSTERS_0_PROPERTIES_SASL_JAAS_CONFIG: >
+                org.apache.kafka.common.security.plain.PlainLoginModule required
+                username="admin"
+                password="admin-secret";
         depends_on:
             - kafka
