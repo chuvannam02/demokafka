@@ -52,6 +52,10 @@ spring:
         locations: classpath:db/migration
         schemas: public
         table: flyway_schema_history
+    servlet:
+        multipart:
+            max-file-size: 100GB
+            max-request-size: 100GB
 
 # Logging configuration for debugging
 ---
